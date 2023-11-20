@@ -1,3 +1,25 @@
+# función que transforma un número en a su versión en string, con una cantidad a elegir de largo máximo
+def to_set_size(num, size):
+    # se transforma el número a string
+    num_str = str(num)
+
+    # si el largo del número en forma de string es mayor al de el size, entonces se lanza un error
+    if(len(num_str)>size):
+        raise Exception("Number does not fit in given size")
+    
+    # mientras el tamaño sea menor al size, se le agregan 0's al comienzo para rellenar
+    while(len(num_str) < size):
+        num_str = "0"+num_str
+
+    # se retorna el número transformado
+    return num_str
+
+# función que un número en forma de string con número de dígitos fijo y lo tranforma a un int
+def from_set_size(num):
+    # solo se pasa a int
+    return int(num)
+
+
 # función que recibe un paquete y lo parsea, retornando cada componente en una estrucutra
 def parse_packet(IP_packet):
     # el separador a usar
@@ -8,14 +30,22 @@ def parse_packet(IP_packet):
     # se divide por comas
     IP_packet = IP_packet.split(separator)
     
-    # se guarda la dirección IP
+    # se guarda la dirección IP (siempre es localhost, 127.0.0.1)
     ip = IP_packet[0]
-    # se guarda el puerto
-    port = IP_packet[1]
-    # se guarda el TTL
-    ttl = IP_packet[2]
+    # se guarda el puerto 
+    port = from_set_size(IP_packet[1])
+    # se guarda el TTL 
+    ttl = from_set_size(IP_packet[2])
+    # se guarda el ID del mensaje
+    id = from_set_size(IP_packet[3])
+    # se guarda el offset
+    offset = from_set_size(IP_packet[4])
+    # se guarda el tamaño
+    size = from_set_size(IP_packet[5])
+    # se guarda la flag
+    flag = from_set_size(IP_packet[6])
     # el mensaje (quizá en forma de lista, osea con más de un elemento)
-    mssg_list = IP_packet[3:len(IP_packet)]
+    mssg_list = IP_packet[7:len(IP_packet)]
 
     # el mensaje en forma de string
     mssg = ""
@@ -31,24 +61,48 @@ def parse_packet(IP_packet):
             mssg += ","
 
     # se retorna la estrcutura
-    return [ip, int(port), int(ttl), mssg]
+    return [ip, port, ttl, id, offset, size, flag, mssg]
 
 # función que recibe una estrcutra y la transforma en un mensaje
 def create_packet(parsed_IP_packet):
     # el separador a usar
     separator = ","
 
-    # se obtiene cada parte del mensaje
-    IP = parsed_IP_packet[0]
-    port = str(parsed_IP_packet[1])
-    ttl = str(parsed_IP_packet[2])
-    mssg = parsed_IP_packet[3]
+    # se consigue la estrcutura para modificarla
+    list_param = parsed_IP_packet
+
+    # se actualizan las partes del mensaje para que sigan el formato correcto
+    # puerto (4 dígitos)
+    list_param[1] = to_set_size(list_param[1], 4)
+    # ttl (3 dígitos)
+    list_param[2] = to_set_size(list_param[2], 3)
+    # ID (8 dígitos)
+    list_param[3] = to_set_size(list_param[3], 8)
+    # offset (8 dígitos)
+    list_param[4] = to_set_size(list_param[4], 8)
+    # tamaño (8 dígitos)
+    list_param[5] = to_set_size(list_param[5], 8)
+    # flag (1 dígito)
+    list_param[6] = to_set_size(list_param[6], 1)
+
+    # donde se guarda el mensaje final
+    final_mssg = ""
+    
+    # se crea el mensaje final en el formato correcto
+    for param in list_param:
+        # se agrega al mensaje final
+        final_mssg += param
+        # si es que es el útlimo, no se agrega una coma, si no es el último, entonces se agrega
+        if(param == list_param[len(list_param)-1]):
+            pass
+        else:
+            final_mssg += ","    
 
     # se retorna el mensaje final
-    return IP+separator+port+separator+ttl+separator+mssg
+    return final_mssg
 
 # # test de funcionalidad
-# IP_packet_v1 = "127.0.0.1,8881,10,hola, cómo estás?".encode()
+# IP_packet_v1 = "127.0.0.1,8881,010,00223344,00345678,00000300,1,hola, cómo estás?".encode()
 # parsed_IP_packet = parse_packet(IP_packet_v1)
 # IP_packet_v2_str = create_packet(parsed_IP_packet)
 # IP_packet_v2 = IP_packet_v2_str.encode()

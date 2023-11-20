@@ -126,6 +126,78 @@ def check_routes(r_lines, destination_address, forwardList):
     # se retorna la dirección de salto y el MTU
     return forwardList.get_nxt_jump(destination_address)
 
+# función que recibe un paquete (en bytes) y un MTU y retorna una lista con 1 o más fragmentos de tamaño a lo más MTU
+def fragment_IP_packet(IP_packet, MTU):
+    # el paquete se pasa a estructura
+    IP_packet_struct = parse_packet(IP_packet)
+
+    # se consiguen los campos que siempre se mantienen constantes
+    ip = IP_packet_struct[0]
+    port = IP_packet_struct[1]
+    ttl = IP_packet_struct[2]
+    id = IP_packet_struct[3]
+
+    # offset actual
+    current_offset = IP_packet_struct[4]
+    # flag del mensaje original
+    flag = IP_packet_struct[6]
+    # lista que guardará los fragmentos
+    fragments = []
+
+    # si es que el tamaño del packet es menor o igual a TTL, se retorna una lista de inmediato, si no, se debe dividir en trozos
+    if(len(IP_packet)<=MTU):
+        return [IP_packet]
+    
+    # tamaño de los headers
+    headers_size = 48
+
+    # se consigue el mensaje y se pasa a bytes
+    mssg_section = (IP_packet_struct[7]).encode()
+    # se consigue el largo del mensaje (en bytes)
+    len_mssg_section = len(mssg_section)
+    # cantidad de bytes del mensaje que han sido encapsuladas
+    bytes_encapsuled = 0
+
+    # se consigue el largo máximo en bytes que tendra cada sección de mensaje (en bytes)
+    new_len_mssg_section = MTU-headers_size
+
+    # ciclo while en el que se van creando los fragmentos
+    while bytes_encapsuled < len_mssg_section:
+        # nuevo mensaje parcial (en bytes)
+        new_mssg = mssg_section[current_offset:new_len_mssg_section+bytes_encapsuled]
+        # se calcula su tamaño
+        new_mssg_size = len(new_mssg)
+        # se pasa a string
+        new_mssg = new_mssg.decode()
+        # se aumenta el número de bytes que se han encapsulado
+        bytes_encapsuled += new_mssg_size
+        # se guarda el offset nuevo
+        new_offset = current_offset
+        # se aumenta el offset en la cantidad de bytes encapsulados
+        current_offset += new_mssg_size
+
+        # almacena la nueva flag
+        new_flag = 1
+
+        # se elige la flag, si es que se llegó al byte final del mensaje y la flag original era 0,
+        #  entonces la nueva flag es 0, si no es 1
+        if((flag == 0) and (bytes_encapsuled >= len_mssg_section)):
+            new_flag = 0
+
+        # se crea un nuevo fragmento
+        fragment = create_packet([ip, port, ttl, id, new_offset, new_mssg_size, new_flag, new_mssg])
+
+        # se añade a la lista
+        fragments.append(fragment)
+
+    # se retorna la lista con los fragmentos
+    return fragments
+
+packet_IP_test = "127.0.0.1,8885,010,00000347,00000000,00000005,0,hola!, soy yo el chupa".encode()
+
+print(fragment_IP_packet(packet_IP_test, 50))
+
+
 # clase que representa todas las posibles salidas del router para una dirección de destino específica, en el router actual
 class Forward:
     def __init__(self, destination_address):

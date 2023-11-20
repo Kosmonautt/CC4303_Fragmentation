@@ -123,7 +123,7 @@ def check_routes(r_lines, destination_address, forwardList):
         # se agrega a forward list
         forwardList.add_forward(new_forward)
         
-    # se retorna la dirección de salto
+    # se retorna la dirección de salto y el MTU
     return forwardList.get_nxt_jump(destination_address)
 
 # clase que representa todas las posibles salidas del router para una dirección de destino específica, en el router actual
@@ -156,8 +156,8 @@ class Forward:
 
             # si se encuentra una línea que corresponde
             if((ip_destination == cidr) and ((inf_r <= port_destination) and (port_destination <= sup_r))):
-                # se actualiza la lista con el par ip lista
-                self.jumps.append((line[3], int(line[4])))
+                # se actualiza la lista con el par ip lista y el MTU
+                self.jumps.append((line[3], int(line[4])), int(line[5]))
         
         # se inicializa el índice
         self.i = 0

@@ -46,7 +46,7 @@ while True:
         # se revisa si el mensaje es para este router, si no, se hace forwarding
         if(struct_mssg[0] == ip and struct_mssg[1] == port):
             # se imprime el mensaje (sin headers)
-            print(struct_mssg[3])
+            print(struct_mssg[7])
         # si no, se debe hacer forwarding
         else:
             # se consigue la ruta para hacer forwarding
@@ -57,7 +57,7 @@ while True:
                 print("No hay rutas hacia {} para paquete {}".format(struct_mssg[1], struct_mssg[0]))
             else:
                 # se debe disminuir su ttl, se crea un mensaje igual pero con el ttl disminuido en 1
-                mssg = (aux_functions.create_packet([struct_mssg[0],struct_mssg[1],struct_mssg[2]-1,struct_mssg[3]])).encode()
+                mssg = (aux_functions.create_packet([struct_mssg[0],struct_mssg[1],struct_mssg[2]-1,struct_mssg[3],struct_mssg[4],struct_mssg[5],struct_mssg[6],struct_mssg[7]])).encode()
 
                 # se imprime el forwarding que se realiza
                 print("redirigiendo paquete {} con destino final {} desde {} hacia {}".format(struct_mssg[0], struct_mssg[1], port, nxt_dir[1]))

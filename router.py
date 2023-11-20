@@ -18,6 +18,8 @@ router_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 router_socket.bind((ip, port))
 # se crea el objeto para guardar las tablas de saltos
 forwardList = aux_functions.ForwardList((ip, port))
+# se crea un diccionario que gaurdará los fragmentos con el mismo id
+frag_dicc = {}
 
 # variable que almacenará las lineas de la tabla
 r_lines = None
@@ -45,8 +47,21 @@ while True:
     else:
         # se revisa si el mensaje es para este router, si no, se hace forwarding
         if(struct_mssg[0] == ip and struct_mssg[1] == port):
-            # se imprime el mensaje (sin headers)
-            print(struct_mssg[7])
+            # el mensaje puede ser un fragmento
+            # se consigue su ID
+            frag_id = mssg[3]
+            # se debe agregar al diccionario o actualizar su lista
+            if(frag_id in frag_dicc):
+                frag_dicc[frag_id].apppend(mssg)
+            else:
+                frag_dicc[frag_id] = [mssg]
+
+            # se intenta reconstruir el mensaje total
+            final_mssg = aux_functions.reassemble_IP_packet(frag_dicc[frag_id])
+
+            # si no es None, entonces se tiene un mensaje total y se imprime el mensaje (sin headers)
+            if(final_mssg != None):
+                print(final_mssg[7])
         # si no, se debe hacer forwarding
         else:
             # se consigue la ruta para hacer forwarding

@@ -157,7 +157,7 @@ class Forward:
             # si se encuentra una línea que corresponde
             if((ip_destination == cidr) and ((inf_r <= port_destination) and (port_destination <= sup_r))):
                 # se actualiza la lista con el par ip lista y el MTU
-                self.jumps.append((line[3], int(line[4])), int(line[5]))
+                self.jumps.append(((line[3], int(line[4])), int(line[5])))
         
         # se inicializa el índice
         self.i = 0

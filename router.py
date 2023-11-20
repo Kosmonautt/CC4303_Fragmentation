@@ -3,7 +3,7 @@ import socket
 import aux_functions
 
 # tamaño del buffer
-buff_size = 48
+buff_size = 200
 
 # ip del router
 ip = sys.argv[1]
@@ -50,7 +50,7 @@ while True:
         # si no, se debe hacer forwarding
         else:
             # se consigue la ruta para hacer forwarding
-            nxt_dir = aux_functions.check_routes(r_lines, (struct_mssg[0], int(struct_mssg[1])), forwardList)
+            (nxt_dir, MTU) = aux_functions.check_routes(r_lines, (struct_mssg[0], int(struct_mssg[1])), forwardList)
 
             # si es None, se descarta, si no, se hace forwarding
             if(nxt_dir == None):
@@ -63,6 +63,3 @@ while True:
                 print("redirigiendo paquete {} con destino final {} desde {} hacia {}".format(struct_mssg[0], struct_mssg[1], port, nxt_dir[1]))
                 # se hace el forwarding            
                 router_socket.sendto(mssg, nxt_dir)
-
-
-

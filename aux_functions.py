@@ -195,7 +195,7 @@ def fragment_IP_packet(IP_packet, MTU):
     # se retorna la lista con los fragmentos
     return fragments
 
-# función que recibe una lista de fragmentos y la reemsabla en orden
+# función que recibe una lista de fragmentos (en bytes) y la reemsabla en orden
 def reassemble_IP_packet(fragment_list):
     # se ve el caso que la lista tenga tamaño 1
     if(len(fragment_list) == 1):
@@ -203,8 +203,10 @@ def reassemble_IP_packet(fragment_list):
         one_fragment = parse_packet(fragment_list[0])
         # se consigue la flag
         one_flag = one_fragment[6]
-        # si la flag es 0 entonces es un paquete entero y se retorna de inmediato (en str), si no, se retorna none
-        if(one_flag == 0):
+        # se consigue sy offset
+        one_offset = one_fragment[4]
+        # si la flag es 0 y su offset es 0 entonces es un paquete entero y se retorna de inmediato (en str), si no, se retorna none
+        if(one_flag == 0 and one_offset == 0):
             return (fragment_list[0]).decode()
         else:
             return None
@@ -225,7 +227,7 @@ def reassemble_IP_packet(fragment_list):
 
     for i in range(0, len(fragment_list)):
         # se obtiene el elemento i-ésimo de la lista
-        f_i = fragment_list[i]
+        f_i = struct_list[i]
         # se obtiene el offset
         f_offset = f_i[4]
         # se crea el par (offset, indice)

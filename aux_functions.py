@@ -58,7 +58,7 @@ def parse_packet(IP_packet):
         if(slice == mssg_list[len(mssg_list)-1]):
             pass
         else:
-            mssg += ","
+            mssg += separator
 
     # se retorna la estrcutura
     return [ip, port, ttl, id, offset, size, flag, mssg]
@@ -96,7 +96,7 @@ def create_packet(parsed_IP_packet):
         if(param == list_param[len(list_param)-1]):
             pass
         else:
-            final_mssg += ","    
+            final_mssg += separator    
 
     # se retorna el mensaje final
     return final_mssg
@@ -184,8 +184,10 @@ def fragment_IP_packet(IP_packet, MTU):
         if((flag == 0) and (bytes_encapsuled >= len_mssg_section)):
             new_flag = 0
 
-        # se crea un nuevo fragmento
+        # se crea un nuevo fragmento 
         fragment = create_packet([ip, port, ttl, id, new_offset, new_mssg_size, new_flag, new_mssg])
+        # se pasa a bytes
+        fragment = fragment.encode()
 
         # se añade a la lista
         fragments.append(fragment)
@@ -193,10 +195,124 @@ def fragment_IP_packet(IP_packet, MTU):
     # se retorna la lista con los fragmentos
     return fragments
 
-packet_IP_test = "127.0.0.1,8885,010,00000347,00000000,00000005,0,hola!, soy yo el chupa".encode()
+# función que recibe una lista de fragmentos y la reemsabla en orden
+def reassemble_IP_packet(fragment_list):
+    # se ve el caso que la lista tenga tamaño 1
+    if(len(fragment_list) == 1):
+        # se pasa a estructura
+        one_fragment = parse_packet(fragment_list[0])
+        # se consigue la flag
+        one_flag = one_fragment[6]
+        # si la flag es 0 entonces es un paquete entero y se retorna de inmediato (en str), si no, se retorna none
+        if(one_flag == 0):
+            return (fragment_list[0]).decode()
+        else:
+            return None
+    
+    # se crea una lista con todos los elementos en forma de estrcutura
+    struct_list = []
 
-print(fragment_IP_packet(packet_IP_test, 50))
+    # para cada fragmento en la lista de fragmentos
+    for fragment in fragment_list:
+        # se pasa a estrcutura
+        f_struct = parse_packet(fragment)
+        # se agrega a la lista
+        struct_list.append(f_struct)
+        
+    # se crea una lista que tendrá los pares con el offset en la primera componente
+    # y el índice con la posición en la lista de fragmentos en la segunda
+    pair_list = []
 
+    for i in range(0, len(fragment_list)):
+        # se obtiene el elemento i-ésimo de la lista
+        f_i = fragment_list[i]
+        # se obtiene el offset
+        f_offset = f_i[4]
+        # se crea el par (offset, indice)
+        f_pair = (f_offset, i)
+        # se agrega a la lista de pares
+        pair_list.append(f_pair)
+
+    # se ordena la lista de pares por su offset
+    pair_list.sort()
+
+    # lista que almacenará los fragmentos en orden
+    ordered_list = []
+
+    # se agregan los fragmentos en orden
+    for pair in pair_list:
+        # se obtiene el elemento en la posición i
+        f_i = fragment_list[pair[1]]
+        # se agrega a la lista ordenada (en forma de estructura)
+        ordered_list.append(parse_packet(f_i))
+
+    # si consigue el offset inicial 
+    current_offset = ordered_list[0][4]
+
+    # si el offset inicial no es 0, entonces la lista está incompleta y se retorna None
+    if(current_offset != 0):
+        return None
+    
+    # donde se guardará el mensaje reconstruido
+    total_mssg = ""
+
+    # para cada elemento de la lista ordenada
+    for f in ordered_list:
+        # se consigue el offset
+        f_offset = f[4]
+        # se consigue le tamaño (en bytes) del mensaje
+        f_size = f[5]
+        # se consigue el mensaje fragmentado
+        f_mssg = f[7]
+
+        # si el offset es diferente al actual, entonces faltan miembros en la lista
+        if(f_offset != current_offset):
+            return None
+        
+        # se agrega el mensaje al mensaje total
+        total_mssg += f_mssg
+        # y se actualiza el offset actual
+        current_offset += f_size
+
+    # se debe revisar que la flag del último fragmento sea 0, si no, faltan fragmentos
+    last_flag = ordered_list[len(ordered_list) - 1][6]
+
+    if(last_flag != 0):
+        return None
+
+    # se crean los parámetros del mensaje nuevo
+    # los primeros 4 campos son iguales para todos así que simplemente se eligen los del primero de la lista
+    new_ip = ordered_list[0][0]
+    new_port = ordered_list[0][1]
+    new_ttl = ordered_list[0][2]
+    new_id = ordered_list[0][3]
+    # su offset es 0 pues es el mensaje completo
+    new_offset = 0
+    # el tamaño nuevo es el largo en bytes del mensajes
+    new_size = len(total_mssg.encode())
+    # la flag es 0 pues es el mesnaje completo
+    new_flag = 0
+    
+    # se crea el paquete
+    new_packet = create_packet([new_ip, new_port, new_ttl, new_id, new_offset, new_size, new_flag, total_mssg])
+
+    # se retorna el paquete (en bytes)
+    return new_packet
+
+# IP_packet_v1 = "127.0.0.1,8885,010,00000347,00000000,00000080,0,hola!, este es un mensaje muy largo para revisar que todo funcione correctamente".encode()
+# MTU = 60
+
+# # test con MTU menor al tamaño del paquete
+# fragment_list = fragment_IP_packet(IP_packet_v1, MTU)
+# IP_packet_v2_str = reassemble_IP_packet(fragment_list)
+# IP_packet_v2 = IP_packet_v2_str.encode()
+# print("IP_packet_v1 = IP_packet_v2 ? {}".format(IP_packet_v1 == IP_packet_v2))
+
+# # test con MTU mayor al tamaño del paquete
+# fragment_list = fragment_IP_packet(IP_packet_v1, MTU*4)
+# IP_packet_v2_str = reassemble_IP_packet(fragment_list)
+# IP_packet_v2 = IP_packet_v2_str.encode()
+# print("IP_packet_v1 = IP_packet_v2 ? {}".format(IP_packet_v1 == IP_packet_v2))
 
 # clase que representa todas las posibles salidas del router para una dirección de destino específica, en el router actual
 class Forward:

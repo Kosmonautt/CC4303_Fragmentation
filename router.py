@@ -59,7 +59,12 @@ while True:
                 # se debe disminuir su ttl, se crea un mensaje igual pero con el ttl disminuido en 1
                 mssg = (aux_functions.create_packet([struct_mssg[0],struct_mssg[1],struct_mssg[2]-1,struct_mssg[3],struct_mssg[4],struct_mssg[5],struct_mssg[6],struct_mssg[7]])).encode()
 
-                # se imprime el forwarding que se realiza
-                print("redirigiendo paquete {} con destino final {} desde {} hacia {}".format(struct_mssg[0], struct_mssg[1], port, nxt_dir[1]))
-                # se hace el forwarding            
-                router_socket.sendto(mssg, nxt_dir)
+                # se consigue la lista de fragmentos tal que sus tamaños sean menor o igual al MTU
+                mssg_list = aux_functions.fragment_IP_packet(mssg, MTU)
+
+                # en envían todos los mensaje de la lista
+                for mssg_frag in mssg_list:
+                    # se imprime el forwarding que se realiza
+                    print("redirigiendo paquete {} con destino final {} desde {} hacia {}".format(struct_mssg[0], struct_mssg[1], port, nxt_dir[1]))
+                    # se hace el forwarding            
+                    router_socket.sendto(mssg_frag, nxt_dir)

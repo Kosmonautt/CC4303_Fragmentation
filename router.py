@@ -59,8 +59,6 @@ while True:
             # se intenta reconstruir el mensaje total
             final_mssg = aux_functions.reassemble_IP_packet(frag_dicc[frag_id])
 
-            print(frag_dicc)
-
             # si no es None, entonces se tiene un mensaje total y se imprime el mensaje (sin headers)
             if(final_mssg != None):
                 # se borra la ID del diccionario

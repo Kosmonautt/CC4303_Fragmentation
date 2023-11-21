@@ -5,9 +5,9 @@ import aux_functions
 # HASTA "nos" funciona, después falla
 
 # el mensaje a enviar
-mssg = "no no no el coco no el coco no no te me subas al hola agrego vainas pero a veces nose"
+mssg = "na ne ni el coco no el coco nu ns te me subas al hola agrego vainas pero a veces nos"
 # estructura
-struct = ["127.0.0.1", 8885, 10, 420, 0, len(mssg.encode()), 0, mssg]
+struct = ["127.0.0.1", 8885, 10, 50, 0, len(mssg.encode()), 0, mssg]
 # se pasa a mensaje
 full_mssg = aux_functions.create_packet(struct)
 # se pasa a bytes

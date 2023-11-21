@@ -19,7 +19,6 @@ def from_set_size(num):
     # solo se pasa a int
     return int(num)
 
-
 # función que recibe un paquete y lo parsea, retornando cada componente en una estrucutra
 def parse_packet(IP_packet):
     # el separador a usar
@@ -128,6 +127,10 @@ def check_routes(r_lines, destination_address, forwardList):
 
 # función que recibe un paquete (en bytes) y un MTU y retorna una lista con 1 o más fragmentos de tamaño a lo más MTU
 def fragment_IP_packet(IP_packet, MTU):
+    # si es que el tamaño del packet es menor o igual a MTU, se retorna una lista de inmediato, si no, se debe dividir en trozos
+    if(len(IP_packet)<=MTU):
+        return [IP_packet]
+    
     # el paquete se pasa a estructura
     IP_packet_struct = parse_packet(IP_packet)
 
@@ -144,17 +147,15 @@ def fragment_IP_packet(IP_packet, MTU):
     # lista que guardará los fragmentos
     fragments = []
 
-    # si es que el tamaño del packet es menor o igual a MTU, se retorna una lista de inmediato, si no, se debe dividir en trozos
-    if(len(IP_packet)<=MTU):
-        return [IP_packet]
-    
     # tamaño de los headers
     headers_size = 48
 
     # se consigue el mensaje y se pasa a bytes
     mssg_section = (IP_packet_struct[7]).encode()
     # se consigue el largo del mensaje (en bytes)
-    len_mssg_section = len(mssg_section)
+    len_mssg_section = IP_packet_struct[5]
+    # assert (nuna debería fallar, si falla entonces fue mal puesto en el mensaje original el tamaño en bytes)
+    assert len_mssg_section == len(mssg_section) 
     # cantidad de bytes del mensaje que han sido encapsuladas
     bytes_encapsuled = 0
 
@@ -163,9 +164,9 @@ def fragment_IP_packet(IP_packet, MTU):
 
     # ciclo while en el que se van creando los fragmentos
     while bytes_encapsuled < len_mssg_section:
-        print("Acá?")
+        print("loop")
         # nuevo mensaje parcial (en bytes)
-        new_mssg = mssg_section[current_offset:new_len_mssg_section+bytes_encapsuled]
+        new_mssg = mssg_section[bytes_encapsuled:bytes_encapsuled+new_len_mssg_section]
         # se calcula su tamaño
         new_mssg_size = len(new_mssg)
         # se pasa a string

@@ -5,7 +5,7 @@ import aux_functions
 # HASTA "nos" funciona, después falla
 
 # el mensaje a enviar
-mssg = "na ne ni el coco no el coco nu ns te me subas al hola agrego vainas pero a veces nos"
+mssg = "este es un mensaje con largo 150B para revisar que el programa haga la fragmentación correctamente :)"
 # estructura
 struct = ["127.0.0.1", 8885, 10, 50, 0, len(mssg.encode()), 0, mssg]
 # se pasa a mensaje

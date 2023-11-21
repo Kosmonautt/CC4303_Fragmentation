@@ -3,7 +3,7 @@ import socket
 import aux_functions
 
 # tamaño del buffer
-buff_size = 200
+buff_size = 256
 
 # ip del router
 ip = sys.argv[1]
@@ -52,15 +52,22 @@ while True:
             frag_id = mssg[3]
             # se debe agregar al diccionario o actualizar su lista
             if(frag_id in frag_dicc):
-                frag_dicc[frag_id].apppend(mssg)
+                frag_dicc[frag_id].append(mssg)
             else:
                 frag_dicc[frag_id] = [mssg]
 
             # se intenta reconstruir el mensaje total
             final_mssg = aux_functions.reassemble_IP_packet(frag_dicc[frag_id])
 
+            print(frag_dicc)
+
             # si no es None, entonces se tiene un mensaje total y se imprime el mensaje (sin headers)
             if(final_mssg != None):
+                # se borra la ID del diccionario
+                frag_dicc.pop(frag_id)
+                # se pasa a estructura
+                final_mssg = aux_functions.parse_packet(final_mssg.encode())
+                # se imprime el mensaje
                 print(final_mssg[7])
         # si no, se debe hacer forwarding
         else:

@@ -144,7 +144,7 @@ def fragment_IP_packet(IP_packet, MTU):
     # lista que guardará los fragmentos
     fragments = []
 
-    # si es que el tamaño del packet es menor o igual a TTL, se retorna una lista de inmediato, si no, se debe dividir en trozos
+    # si es que el tamaño del packet es menor o igual a MTU, se retorna una lista de inmediato, si no, se debe dividir en trozos
     if(len(IP_packet)<=MTU):
         return [IP_packet]
     
@@ -163,6 +163,7 @@ def fragment_IP_packet(IP_packet, MTU):
 
     # ciclo while en el que se van creando los fragmentos
     while bytes_encapsuled < len_mssg_section:
+        print("Acá?")
         # nuevo mensaje parcial (en bytes)
         new_mssg = mssg_section[current_offset:new_len_mssg_section+bytes_encapsuled]
         # se calcula su tamaño

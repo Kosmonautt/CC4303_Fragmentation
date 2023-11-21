@@ -18,7 +18,7 @@ router_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 router_socket.bind((ip, port))
 # se crea el objeto para guardar las tablas de saltos
 forwardList = aux_functions.ForwardList((ip, port))
-# se crea un diccionario que gaurdará los fragmentos con el mismo id
+# se crea un diccionario que gaurdará los fragmentos (en bytes) con el mismo id
 frag_dicc = {}
 
 # variable que almacenará las lineas de la tabla
@@ -49,10 +49,10 @@ while True:
         if(struct_mssg[0] == ip and struct_mssg[1] == port):
             # el mensaje puede ser un fragmento
             # se consigue su ID
-            frag_id = mssg[3]
+            frag_id = struct_mssg[3]
             # se debe agregar al diccionario o actualizar su lista
             if(frag_id in frag_dicc):
-                frag_dicc[frag_id].append(mssg)
+                (frag_dicc[frag_id]).append(mssg)
             else:
                 frag_dicc[frag_id] = [mssg]
 

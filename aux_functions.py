@@ -22,7 +22,7 @@ def from_set_size(num):
 # función que recibe un paquete y lo parsea, retornando cada componente en una estrucutra
 def parse_packet(IP_packet):
     # el separador a usar
-    separator = ","
+    separator = ";"
 
     # se le hace decode
     IP_packet = IP_packet.decode()
@@ -65,7 +65,7 @@ def parse_packet(IP_packet):
 # función que recibe una estrcutra y la transforma en un mensaje
 def create_packet(parsed_IP_packet):
     # el separador a usar
-    separator = ","
+    separator = ";"
 
     # se consigue la estrcutura para modificarla
     list_param = parsed_IP_packet
@@ -155,7 +155,8 @@ def fragment_IP_packet(IP_packet, MTU):
     # se consigue el largo del mensaje (en bytes)
     len_mssg_section = IP_packet_struct[5]
     # assert (nuna debería fallar, si falla entonces fue mal puesto en el mensaje original el tamaño en bytes)
-    assert len_mssg_section == len(mssg_section) 
+    if(len_mssg_section != len(mssg_section)):
+        raise Exception("Size no set correctly!")
     # cantidad de bytes del mensaje que han sido encapsuladas
     bytes_encapsuled = 0
 

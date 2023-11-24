@@ -58,6 +58,10 @@ def parse_packet(IP_packet):
             pass
         else:
             mssg += separator
+    
+    # al mensaje se le quita un posbile salto de línea en la útima posición
+    if (mssg[len(mssg)-1] == "\n" and offset == 0 and flag == 0):
+        mssg = mssg[0:len(mssg)-1]
 
     # se retorna la estrcutura
     return [ip, port, ttl, id, offset, size, flag, mssg]
@@ -165,7 +169,6 @@ def fragment_IP_packet(IP_packet, MTU):
 
     # ciclo while en el que se van creando los fragmentos
     while bytes_encapsuled < len_mssg_section:
-        print("loop")
         # nuevo mensaje parcial (en bytes)
         new_mssg = mssg_section[bytes_encapsuled:bytes_encapsuled+new_len_mssg_section]
         # se calcula su tamaño
